@@ -64,7 +64,23 @@ def respond(request): # get answer and return the answer with json form
     response = res.choices[0].message["content"]
     #print(response)
     length_of_answer=len(response)
+    start_index=0
+    end_index=1
 
-    answer=json.dumps({'answer': response , 'start': 0, 'end': 7 , 'label':'FORM', 'len':length_of_answer}, sort_keys=True, indent=4, 
+    answer=json.dumps({'answer': response , 'start': start_index, 'end': end_index , 'label':'FORM', 'len':length_of_answer}, sort_keys=True, indent=4, 
     separators=(',', ': '))
     return(answer)
+
+def user_op(request): #store user's operation to database
+    op_type=request.POST.get('type')
+    op_pos_start=request.POST.get('pos_start')
+    op_pos_end=request.POST.get('pos_end')
+    op_content=request.POST.get('content')
+    op=Operation.objects.create(
+        type=op_type,
+        pos_start=op_pos_start,
+        pos_end= op_pos_end,
+        content=op_content
+
+    )
+    op.save()
