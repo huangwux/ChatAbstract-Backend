@@ -9,5 +9,7 @@ class Chat(models.Model):
 
 class Operation(models.Model):
     type = models.IntegerField(blank=True)
-    pos = models.IntegerField(blank=True)
+    pos_start = models.IntegerField(blank=True)
+    pos_end = models.IntegerField(blank=True)
+    content = models.TextField(max_length=20000)
     datetime = models.DateTimeField(auto_now_add=True, blank=True, null=True)
