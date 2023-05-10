@@ -1,13 +1,14 @@
 from .models import *
 import openai, os
 import json
+import re
 
 
 def init(request): # stat conversation with gpt
     text = "I want you to act as my academic writing mentor and polish my essay according to my instructions."
-    os.environ["http_proxy"] = "http://127.0.0.1:7890"
-    os.environ["https_proxy"] = "http://127.0.0.1:7890"
-    openai.api_key = "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"
+    os.environ["http_proxy"] = "http://127.0.0.1:12935"
+    os.environ["https_proxy"] = "http://127.0.0.1:12935"
+    openai.api_key = "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"
     res = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         temperature=0.8,
@@ -22,9 +23,9 @@ def init(request): # stat conversation with gpt
 def chat(request): # chat with gpt
     text = request.POST.get('text')
     print(text)
-    os.environ["http_proxy"] = "http://127.0.0.1:7890"
-    os.environ["https_proxy"] = "http://127.0.0.1:7890"
-    openai.api_key = "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"
+    os.environ["http_proxy"] = "http://127.0.0.1:12935"
+    os.environ["https_proxy"] = "http://127.0.0.1:12935"
+    openai.api_key = "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"
     res = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         temperature=0.8,
@@ -45,13 +46,12 @@ def chat(request): # chat with gpt
 
     
 
-
-def respond(request): # get answer and return the answer with json form
+def respond_with_string(request): # get answer and return the answer with json form
     text = request.POST.get('text')
     print(text)
-    os.environ["http_proxy"] = "http://127.0.0.1:7890"
-    os.environ["https_proxy"] = "http://127.0.0.1:7890"
-    openai.api_key = "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"
+    os.environ["http_proxy"] = "http://127.0.0.1:12935"
+    os.environ["https_proxy"] = "http://127.0.0.1:12935"
+    openai.api_key = "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"
     res = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         temperature=0.8,
@@ -63,12 +63,47 @@ def respond(request): # get answer and return the answer with json form
 
     response = res.choices[0].message["content"]
     #print(response)
-    length_of_answer=len(response)
-    start_index=0
-    end_index=1
+    #length_of_answer=len(response)
+    chat = Chat.objects.create(
+        text=text,
+        gpt=response
+    )
+    chat.save()
+    return(response)
 
-    answer=json.dumps({'answer': response , 'start': start_index, 'end': end_index , 'label':'FORM', 'len':length_of_answer}, sort_keys=True, indent=4, 
+
+
+
+def respond_with_json(request): # get answer and return the answer with json form
+    text = request.POST.get('text')
+    print(text)
+    os.environ["http_proxy"] = "http://127.0.0.1:12935"
+    os.environ["https_proxy"] = "http://127.0.0.1:12935"
+    openai.api_key = "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"
+    res = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        temperature=0.8,
+        max_tokens=10000,
+        messages=[
+            {"role": "user", "content": f"{text}"}
+        ]
+    )
+
+    response = res.choices[0].message["content"]
+    #print(response)
+    #length_of_answer=len(response)
+    start_index=re.findall(r'"start_index": ([0-9]*?),', response)
+    end_index=re.findall(r'"end_index": ([0-9]*?),', response)
+    label=re.findall(r'"comment": (.*?),', response)
+
+    answer=json.dumps({'start': start_index, 'end': end_index , 'label':label}, sort_keys=True, indent=4, 
     separators=(',', ': '))
+
+    chat = Chat.objects.create(
+        text=text,
+        gpt=response
+    )
+    chat.save()
     return(answer)
 
 def user_op(request): #store user's operation to database
