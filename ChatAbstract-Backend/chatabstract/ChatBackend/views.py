@@ -116,6 +116,5 @@ def user_op(request): #store user's operation to database
         pos_start=op_pos_start,
         pos_end= op_pos_end,
         content=op_content
-
     )
     op.save()
