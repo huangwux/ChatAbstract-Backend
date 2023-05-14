@@ -1,4 +1,5 @@
 from .models import *
+from django.http import HttpResponse
 import openai, os
 import json
 import re
@@ -30,30 +31,31 @@ def generate_prompt(operation) -> str:
 
 def init(request): # stat conversation with gpt
     text = "I want you to act as my academic writing mentor and polish my essay according to my instructions."
-    os.environ["http_proxy"] = "http://127.0.0.1:12935"
-    os.environ["https_proxy"] = "http://127.0.0.1:12935"
-    openai.api_key = "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"
+    os.environ["http_proxy"] = "http://127.0.0.1:7890"
+    os.environ["https_proxy"] = "http://127.0.0.1:7890"
+    openai.api_key = "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"
     res = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         temperature=0.8,
-        max_tokens=10000,
+        max_tokens=2000,
         messages=[
             {"role": "user", "content": f"{text}"}
         ]
     )
+    return HttpResponse("Start a new chatting.")
 
 
 
 def chat(request): # chat with gpt
     text = request.POST.get('text')
     print(text)
-    os.environ["http_proxy"] = "http://127.0.0.1:12935"
-    os.environ["https_proxy"] = "http://127.0.0.1:12935"
-    openai.api_key = "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"
+    os.environ["http_proxy"] = "http://127.0.0.1:7890"
+    os.environ["https_proxy"] = "http://127.0.0.1:7890"
+    openai.api_key = "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"
     res = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         temperature=0.8,
-        max_tokens=10000,
+        max_tokens=2000,
         messages=[
             {"role": "user", "content": f"{text}"}
         ]
@@ -67,19 +69,20 @@ def chat(request): # chat with gpt
         gpt=response
     )
     chat.save() # store the input , answer given by gpt and time to the database
+    return HttpResponse(response)
 
     
 
 def respond_with_string(request): # get answer and return the answer with json form
     text = request.POST.get('text')
     print(text)
-    os.environ["http_proxy"] = "http://127.0.0.1:12935"
-    os.environ["https_proxy"] = "http://127.0.0.1:12935"
-    openai.api_key = "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"
+    os.environ["http_proxy"] = "http://127.0.0.1:7890"
+    os.environ["https_proxy"] = "http://127.0.0.1:7890"
+    openai.api_key = "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"
     res = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         temperature=0.8,
-        max_tokens=10000,
+        max_tokens=2000,
         messages=[
             {"role": "user", "content": f"{text}"}
         ]
@@ -93,7 +96,7 @@ def respond_with_string(request): # get answer and return the answer with json f
         gpt=response
     )
     chat.save()
-    return(response)
+    return HttpResponse(response)
 
 
 
@@ -111,9 +114,9 @@ def respond_with_json(request): # get answer and return the answer with json for
     }
     prompt = generate_prompt(operation)
     #rint(text)
-    os.environ["http_proxy"] = "http://127.0.0.1:12935"
-    os.environ["https_proxy"] = "http://127.0.0.1:12935"
-    openai.api_key = "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"
+    os.environ["http_proxy"] = "http://127.0.0.1:7890"
+    os.environ["https_proxy"] = "http://127.0.0.1:7890"
+    openai.api_key = "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"
     res = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         temperature=0.8,
@@ -146,5 +149,5 @@ def respond_with_json(request): # get answer and return the answer with json for
         comment=comment
     )
     op.save()
-    return(response)
+    return HttpResponse(response)
 
