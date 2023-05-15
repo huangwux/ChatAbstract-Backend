@@ -25,7 +25,7 @@ def generate_prompt(operation) -> str:
     prompt = "The original text is <" + str(operation["text"])+">. "
     sentence = str(operation["text"])[int(operation["start_index"]):int(operation["end_index"])]
     prompt += "For sentence <" + sentence + ">, whose start index is " + str(operation["start_index"]) + " and end index is " + str(operation["end_index"]) + ", " + "the user's comment is " + operation["comment"] + "."
-    prompt += "Notice only the sentence mentioned should be changed. Give me the changed version of the whole text, along with the changed part's start index and end index in the form of json, with three keys: text, start_index and end_index.  Your response should only contain json data. If the action is deletion, omit the start_index and end_index keys in your response."
+    prompt += "Notice only the sentence mentioned should be changed.You should respond with only one json object containing the text after change and the changed sentence, with two keys: text, sentence."
     return prompt
 
 
@@ -34,7 +34,7 @@ def init(request): # stat conversation with gpt
     text = "I want you to act as my academic writing mentor and polish my essay according to my instructions."
     os.environ["http_proxy"] = "http://127.0.0.1:7890"
     os.environ["https_proxy"] = "http://127.0.0.1:7890"
-    openai.api_key = "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"
+    openai.api_key = "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"
     res = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         temperature=0.8,
@@ -52,7 +52,7 @@ def chat(request): # chat with gpt
     print(text)
     os.environ["http_proxy"] = "http://127.0.0.1:7890"
     os.environ["https_proxy"] = "http://127.0.0.1:7890"
-    openai.api_key = "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"
+    openai.api_key = "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"
     res = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         temperature=0.8,
@@ -79,7 +79,7 @@ def respond_with_string(request): # get answer and return the answer with json f
     print(text)
     os.environ["http_proxy"] = "http://127.0.0.1:7890"
     os.environ["https_proxy"] = "http://127.0.0.1:7890"
-    openai.api_key = "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"
+    openai.api_key = "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"
     res = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         temperature=0.8,
@@ -119,7 +119,7 @@ def respond_with_json(request): # get answer and return the answer with json for
     #rint(text)
     os.environ["http_proxy"] = "http://127.0.0.1:7890"
     os.environ["https_proxy"] = "http://127.0.0.1:7890"
-    openai.api_key = "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"
+    openai.api_key = "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"
     res = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         temperature=0.8,
@@ -129,7 +129,23 @@ def respond_with_json(request): # get answer and return the answer with json for
         ]
     )
 
-    response = res.choices[0].message["content"]
+    response_json = res.choices[0].message["content"]
+    response = json.loads(response_json)
+    origin_text = operation['text']
+    changed_sentence = response['sentence']
+    lngth=len(response['sentence'])
+    #start_index = operation['start_index']
+    #end_index = start_index + lngth
+    if(operation['start_index'] ==0) :
+        text = changed_sentence + origin_text[operation['end_index']+1 : len(origin_text)]
+    else :
+        text = origin_text[0 : operation['start_index']-1] + changed_sentence + origin_text[operation['end_index']+1 : len(origin_text)]
+    response_final = {
+        "text" : text ,                   
+        "start_index" : operation['start_index'] ,
+        "end_index" : operation['start_index']+lngth
+    }
+    response_final_json = json.dumps(response_final)
     #print(response)
     #length_of_answer=len(response)
     #start_index=re.findall(r'"start_index": ([0-9]*?),', response)
@@ -152,5 +168,5 @@ def respond_with_json(request): # get answer and return the answer with json for
         comment=operation["comment"]
     )
     op.save()
-    return HttpResponse(response)
+    return HttpResponse(response_final_json)
 
